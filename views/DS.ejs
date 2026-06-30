@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | Core System</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        body {
+            background-color: #0f1016;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- الشريط العلوي --- */
+        .navbar {
+            background: rgba(21, 22, 30, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #2b2d3c;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .logo span {
+            color: #00ffaa;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #00ffaa;
+        }
+
+        /* --- Hamburger Menu --- */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            z-index: 101;
+        }
+
+        .hamburger span {
+            width: 30px;
+            height: 3px;
+            background-color: #fff;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 900px) {
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 250px;
+                height: 100vh;
+                background: #15161e;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 80px 30px 30px;
+                box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+                transition: right 0.4s ease;
+                z-index: 100;
+                border-left: 1px solid #2b2d3c;
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .hamburger.active span:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+                background-color: #00ffaa;
+            }
+
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active span:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+                background-color: #00ffaa;
+            }
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #00ffaa;
+        }
+
+        /* --- محتوى الصفحة --- */
+        .container {
+            padding: 40px 50px;
+            max-width: 1300px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+        }
+
+        /* --- الشريط الجانبي (البروفايل) --- */
+        .profile-sidebar {
+            background: #15161e;
+            border: 1px solid #2b2d3c;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            height: fit-content;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ffaa, #0088ff);
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            font-weight: 700;
+            color: #0f1016;
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.3);
+        }
+
+        .student-name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .student-id {
+            color: #888;
+            font-size: 16px;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .balance-box {
+            background: rgba(0, 255, 170, 0.05);
+            border: 1px dashed #00ffaa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .balance-box h3 {
+            font-size: 14px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .balance-box .points {
+            font-size: 36px;
+            font-weight: 700;
+            color: #00ffaa;
+            margin-top: 5px;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            background: transparent;
+            color: #fff;
+            border: 1px solid #3a3c4f;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .action-btn:hover {
+            border-color: #00ffaa;
+            color: #00ffaa;
+            background: rgba(0, 255, 170, 0.05);
+        }
+
+        /* --- القسم الرئيسي (المكتبة والسجل) --- */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .section-header {
+            font-size: 24px;
+            font-weight: 700;
+            border-bottom: 2px solid #2b2d3c;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* شبكة المكتبة */
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .lib-card {
+            background: linear-gradient(180deg, #1a1c29, #15161e);
+            border: 1px solid #2b2d3c;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.3s;
+        }
+
+        .lib-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ffaa;
+        }
+
+        .lib-type {
+            font-size: 12px;
+            color: #00ffaa;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .lib-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .access-btn {
+            background: #00ffaa;
+            color: #0f1016;
+            border: none;
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        .access-btn:hover {
+            background: #33ffbb;
+        }
+
+        /* جدول العمليات */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #15161e;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #2b2d3c;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #2b2d3c;
+        }
+
+        .history-table th {
+            background: #1a1c29;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+
+        .history-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .type-add {
+            color: #00ffaa;
+            font-weight: 700;
+        }
+
+        .type-sub {
+            color: #ff4444;
+            font-weight: 700;
+        }
+
+        /* --- النافذة المنبثقة (Modal) لمشاهدة المحتوى --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 16, 22, 0.9);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #15161e;
+            border: 1px solid #3a3c4f;
+            border-radius: 16px;
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            transform: translateY(30px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: transparent;
+            color: #888;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: #ff4444;
+        }
+
+        .viewer-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .modal-subtitle {
+            color: #888;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .simulate-bar {
+            width: 100%;
+            height: 6px;
+            background: #2b2d3c;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .simulate-progress {
+            height: 100%;
+            width: 0%;
+            background: #00ffaa;
+            border-radius: 10px;
+            transition: width 2s ease-in-out;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- Toast Notifications --- */
+        #toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: #15161e;
+            color: #fff;
+            border-left: 4px solid #00ffaa;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            border-left-color: #ff4444;
+        }
+
+        .toast.warning {
+            border-left-color: #ffbb33;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed #3a3c4f;
+            border-radius: 12px;
+            color: #888;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .empty-state a {
+            color: #00ffaa;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+
+        .empty-state a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- Animations --- */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-card {
+            opacity: 0;
+            /* Hidden initially */
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        /* --- Edit Profile Modal --- */
+        .profile-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 16, 22, 0.9);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .profile-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .profile-modal-box {
+            background: #15161e;
+            border: 1px solid #3a3c4f;
+            border-radius: 16px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            transform: translateY(30px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .profile-modal-overlay.active .profile-modal-box {
+            transform: translateY(0);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            color: #aaa;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid #3a3c4f;
+            padding: 12px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: #00ffaa;
+            background: rgba(0, 255, 170, 0.05);
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="toast-container"></div>
+
+    <!-- Viewer Modal -->
+    <div class="modal-overlay" id="viewerModal">
+        <div class="modal-box">
+            <button class="close-modal" onclick="closeViewer()">×</button>
+            <div class="viewer-icon" id="viewerIcon">📄</div>
+            <h3 class="modal-title" id="viewerTitle">Document Title</h3>
+            <p class="modal-subtitle" id="viewerSubtitle">Preparing your content...</p>
+
+            <div class="simulate-bar" id="viewerBar">
+                <div class="simulate-progress" id="viewerProgress"></div>
+            </div>
+
+            <button class="action-btn" id="viewerActionBtn"
+                style="margin-top: 20px; border-color: #00ffaa; color: #00ffaa;">Start</button>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div class="profile-modal-overlay" id="editProfileModal">
+        <div class="profile-modal-box">
+            <button class="close-modal" onclick="closeEditProfile()">×</button>
+            <h3 class="modal-title">Edit Profile</h3>
+
+            <form action="/profile/update" method="POST">
+                
+                <div class="input-group">
+                    <label for="editName">Display Name</label>
+                    <input type="text" id="editName" name="name" value="<%= user.name %>" required placeholder="Enter your name">
+                </div>
+
+                <div class="input-group">
+                    <label for="editAvatar">Avatar Initials (max 2 letters)</label>
+                    <input type="text" id="editAvatar" placeholder="e.g. ST" maxlength="2" disabled value="<%= user.name.substring(0, 2) %>" title="Auto-generated from name">
+                </div>
+
+                <button type="submit" class="action-btn"
+                    style="border-color: #00ffaa; color: #00ffaa; margin-top: 10px;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">Borg El Arab <span>Tech</span></div>
+        <div class="hamburger" id="hamburgerMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-links" id="navLinks">
+            <% if(user && (user.is_admin || user.role === "doctor")) { %>
+            <a href="/admin/dashboard" class="nav-item" style="color: #00ffaa; border-left: 3px solid #00ffaa;">
+                [Management Panel]
+            </a>
+            <% } %>
+            <a href="/store/ds" class="active">Dashboard</a>
+            <a href="/store/ps">Store</a>
+            <a href="/recharge">Recharge</a>
+            <form action="/logout" method="POST" style="display: inline;">
+                
+                <button type="submit" style="background: none; border: none; color: #888; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; padding: 0;">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        <aside class="profile-sidebar">
+            <div class="avatar" id="sidebarAvatar"><%= user.name.substring(0, 2) %></div>
+            <h2 class="student-name" id="sidebarName"><%= user.name %></h2>
+            <p class="student-id" id="sidebarId">Email: <%= user.email %></p>
+
+            <div class="balance-box">
+                <h3>Available Core Points</h3>
+                <div class="points" id="dashboardBalance"><%= user.balance %> Pt</div>
+            </div>
+
+            <button class="action-btn" onclick="window.location.href='/recharge'">Top-up Balance</button>
+            <button class="action-btn" onclick="window.location.href='/store/ps'">Store</button>
+            <button class="action-btn" onclick="document.getElementById('editProfileModal').classList.add('active')">Edit Profile</button>
+            <button class="action-btn" onclick="document.getElementById('changePasswordModal').classList.add('active')" style="border-color: #ffbb33; color: #ffbb33;">Change Password</button>
+        </aside>
+
+        <!-- Change Password Modal -->
+        <div class="profile-modal-overlay" id="changePasswordModal">
+            <div class="profile-modal-box">
+                <button class="close-modal" onclick="document.getElementById('changePasswordModal').classList.remove('active')">×</button>
+                <h3 class="modal-title">Change Password</h3>
+
+                <form action="/profile/password" method="POST">
+                    
+                    <div class="input-group">
+                        <label for="current_password">Current Password</label>
+                        <input type="password" id="current_password" name="current_password" required placeholder="Enter current password">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="new_password">New Password</label>
+                        <input type="password" id="new_password" name="new_password" required placeholder="Enter new password">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="new_password_confirmation">Confirm New Password</label>
+                        <input type="password" id="new_password_confirmation" name="new_password_confirmation" required placeholder="Confirm new password">
+                    </div>
+
+                    <button type="submit" class="action-btn"
+                        style="border-color: #ffbb33; color: #ffbb33; margin-top: 10px;">Update Password</button>
+                </form>
+            </div>
+        </div>
+
+        <main class="main-content">
+
+            <section>
+                <h2 class="section-header">Store Items</h2>
+                
+                 <% if(success) { %>
+                    <div class="toast success show" style="margin-bottom: 20px; position: relative; bottom: auto; right: auto; transform: none; min-width: auto; width: 100%;">
+                        <span><%= success %></span>
+                    </div>
+                <% } %>
+                <% if(error) { %>
+                    <div class="toast error show" style="margin-bottom: 20px; position: relative; bottom: auto; right: auto; transform: none; min-width: auto; width: 100%;">
+                        <span><%= error %></span>
+                    </div>
+                <% } %>
+
+                <div class="library-grid" id="dashboardLibrary">
+                    @forelse($items as $item)
+                        <div class="lib-card animate-card">
+                            <img src="{{ asset('storage/' . $item->image_url) }}" alt="{{ $item->name }}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 1px solid #2b2d3c;">
+                            <div class="lib-type">{{ $item->category }}</div>
+                            <h3 class="lib-title">{{ $item->name }}</h3>
+                            <p style="color: #888; font-size: 14px; margin-bottom: 15px; height: 40px; overflow: hidden;">{{ $item->description }}</p>
+                            <p style="color: #00ffaa; font-weight: bold; margin-bottom: 15px;">{{ $item->price }} Pt</p>
+                            <form action="{{ route('store.purchase', $item->id) }}" method="POST">
+                                
+                                <button type="submit" class="access-btn">Buy Feature</button>
+                            </form>
+                        </div>
+                    @empty
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            No items available in your library yet. <a href="/store/ps">Browse Store</a>
+                        </div>
+                    @endforelse
+                </div>
+            </section>
+
+            <section>
+                <h2 class="section-header">Transaction History</h2>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboardHistory">
+                        @foreach(Auth::user()->purchases()->with('item')->get() as $purchase)
+                        <tr>
+                            <td>{{ $purchase->created_at->format('Y-m-d') }}</td>
+                            <td>Purchased: {{ $purchase->item->name }}</td>
+                            <td class="type-sub">-{{ $purchase->item->price }} Pt</td>
+                            <td>Completed</td>
+                        </tr>
+                        @endforeach
+                        @foreach(Auth::user()->recharges as $recharge)
+                        <tr>
+                            <td>{{ $recharge->created_at->format('Y-m-d') }}</td>
+                            <td>Recharge points</td>
+                            <td class="type-add">+{{ $recharge->amount }} Pt</td>
+                            <td>{{ ucfirst($recharge->status) }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // --- Toast System ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 10);
+
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function closeEditProfile() {
+            document.getElementById('editProfileModal').classList.remove('active');
+        }
+
+        function logoutUser() {
+            // Logout is handled by the form in the navbar
+        }
+
+        // Hamburger Menu Toggle
+        const hamburger = document.getElementById('hamburgerMenu');
+        const navLinks = document.getElementById('navLinks');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!hamburger.contains(e.target) && !navLinks.contains(e.target) && navLinks.classList.contains('active')) {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            }
+        });
+
+        // Blade templates handle library and history rendering.
+    </script>
+</body>
+
+</html>

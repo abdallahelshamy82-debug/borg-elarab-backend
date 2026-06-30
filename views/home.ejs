@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Main Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; }
+        body { background-color: #f4f6f9; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
+        .navbar { background: #ffffff; border-bottom: 1px solid #ddd; padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-size: 24px; font-weight: 700; color: #1a1c29; letter-spacing: 1px; text-transform: uppercase; }
+        .logo span { color: #0088ff; }
+        .nav-links { display: flex; gap: 30px; align-items: center; }
+        .nav-links a { color: #555; text-decoration: none; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s; }
+        .nav-links a:hover { color: #0088ff; }
+        .profile-btn { background: #0088ff; color: white !important; padding: 10px 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 136, 255, 0.3); transition: all 0.3s; }
+        .profile-btn:hover { background: #0066cc; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 136, 255, 0.4); }
+        
+        .hero { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 50px; }
+        .hero h1 { font-size: 48px; color: #1a1c29; margin-bottom: 20px; }
+        .hero p { font-size: 20px; color: #666; max-width: 600px; margin-bottom: 40px; }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">Borg El Arab <span>University</span></div>
+        <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#">News</a>
+            <a href="#">Colleges</a>
+            <a href="{{ route('store.ds') }}" class="profile-btn">My Profile (Digital Services)</a>
+            <form action="/logout" method="POST" style="display: inline; margin-left: 10px;">
+                
+                <button type="submit" style="background: none; border: none; color: #ff4444; font-size: 16px; font-weight: 600; text-transform: uppercase; cursor: pointer;">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Welcome back, <%= user.name %>!</h1>
+        <p>This is the main university portal. To access your courses, digital materials, and points balance, please navigate to your Digital Profile.</p>
+        <a href="{{ route('store.ds') }}" class="profile-btn" style="text-decoration: none; font-size: 20px; padding: 15px 40px;">Go to My Profile</a>
+    </div>
+</body>
+</html>
