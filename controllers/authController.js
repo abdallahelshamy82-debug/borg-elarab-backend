@@ -1,6 +1,13 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { User } = require('../models');
+const admin = require('firebase-admin');
+
+if (!admin.apps.length) {
+    admin.initializeApp({
+        projectId: process.env.FIREBASE_PROJECT_ID || 'dwd-it2-92aa4'
+    });
+}
 
 exports.showLogin = (req, res) => {
     res.render('login');
@@ -48,46 +55,52 @@ exports.login = async (req, res) => {
 };
 
 exports.ssoLogin = async (req, res) => {
-    const { user_id, name, role, timestamp, signature } = req.query;
+    const { token, redirect } = req.query;
 
-    if (!user_id || !name || !role || !timestamp || !signature) {
-        return res.status(400).send('Missing SSO parameters');
-    }
-
-    // 1. Verify Timestamp (prevent replay attacks - links expire after 5 minutes)
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (currentTime - parseInt(timestamp) > 300) {
-        return res.status(403).send('SSO Link Expired');
-    }
-
-    // 2. Verify Signature
-    const secret = process.env.SSO_SECRET || 'BorgElArabSecret2026';
-    const payload = `${user_id}|${name}|${role}|${timestamp}`;
-    const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-
-    if (expectedSignature !== signature) {
-        return res.status(403).send('Invalid SSO Signature');
+    if (!token) {
+        return res.status(400).send('Missing SSO token');
     }
 
     try {
-        // 3. Auto-sync user in our DB
-        let user = await User.findOne({ where: { email: user_id } });
+        // 1. Verify Firebase ID Token
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        
+        // Extract basic info from the token
+        const email = decodedToken.email;
+        let name = decodedToken.name || decodedToken.email.split('@')[0];
+        
+        // Firebase Auth doesn't store role in standard claims by default unless set as custom claims.
+        // We will assume "student" by default if it's not present, unless the email matches admin.
+        let role = decodedToken.role || 'student';
+        
+        if (email === 'admin@borg.com' || email.includes('admin')) {
+            role = 'admin';
+        }
+
+        // 2. Auto-sync user in our DB
+        let user = await User.findOne({ where: { email } });
         
         if (!user) {
             const randomPassword = await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10);
             user = await User.create({
-                email: user_id,
+                email: email,
                 name: name,
                 role: role,
                 is_admin: role === 'admin',
                 password: randomPassword
             });
         } else {
-            // Update name and role just in case they changed in the main system
-            await user.update({ name, role, is_admin: role === 'admin' });
+            // Update name and role if custom claims were provided in the token
+            if (decodedToken.role || decodedToken.name) {
+                await user.update({ 
+                    name: decodedToken.name ? decodedToken.name : user.name, 
+                    role: decodedToken.role ? decodedToken.role : user.role, 
+                    is_admin: (decodedToken.role || user.role) === 'admin' 
+                });
+            }
         }
 
-        // 4. Log the user in
+        // 3. Log the user in securely
         req.session.user = {
             id: user.id,
             name: user.name,
@@ -97,23 +110,23 @@ exports.ssoLogin = async (req, res) => {
             balance: user.balance
         };
 
-        // 5. Redirect to specific page if requested
-        const { redirect } = req.query;
+        // 4. Redirect to specific page if requested
         if (redirect) {
-            // Basic security check to prevent open redirects (only allow relative paths)
+            // Basic security check to prevent open redirects
             if (redirect.startsWith('/')) {
                 return res.redirect(redirect);
             }
         }
 
-        // 6. Default Redirect based on role
+        // 5. Default Redirect based on role
         if (user.is_admin || user.role === 'doctor') {
             return res.redirect('/admin/dashboard');
         }
         return res.redirect('/home');
+        
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error during SSO');
+        console.error('SSO Token Verification Failed:', error);
+        res.status(401).send('Invalid or Expired SSO Token');
     }
 };
 
