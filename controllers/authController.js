@@ -97,7 +97,16 @@ exports.ssoLogin = async (req, res) => {
             balance: user.balance
         };
 
-        // 5. Redirect based on role
+        // 5. Redirect to specific page if requested
+        const { redirect } = req.query;
+        if (redirect) {
+            // Basic security check to prevent open redirects (only allow relative paths)
+            if (redirect.startsWith('/')) {
+                return res.redirect(redirect);
+            }
+        }
+
+        // 6. Default Redirect based on role
         if (user.is_admin || user.role === 'doctor') {
             return res.redirect('/admin/dashboard');
         }
