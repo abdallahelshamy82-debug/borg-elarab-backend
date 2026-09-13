@@ -5,12 +5,7 @@ const path = require('path');
 const fs = require('fs');
 
 let sequelize;
-const isDeadHost = process.env.DATABASE_URL && (
-    process.env.DATABASE_URL.includes('eynpinsmjajduwrvkrrh') ||
-    process.env.DISABLE_POSTGRES === 'true'
-);
-
-if (process.env.DATABASE_URL && !isDeadHost) {
+if (process.env.DATABASE_URL) {
   const pg = require('pg');
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
