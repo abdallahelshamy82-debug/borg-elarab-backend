@@ -5,7 +5,12 @@ const path = require('path');
 const fs = require('fs');
 
 let sequelize;
-const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+const dbUrl = process.env.STORAGE_URL || 
+              process.env.STORAGE_POSTGRES_URL || 
+              process.env.STORAGE_DATABASE_URL || 
+              process.env.POSTGRES_URL || 
+              (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('eynpinsmjajduwrvkrrh') ? process.env.DATABASE_URL : null);
+
 if (dbUrl) {
   const pg = require('pg');
   sequelize = new Sequelize(dbUrl, {
