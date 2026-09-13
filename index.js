@@ -9,10 +9,22 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+if (process.env.VERCEL === '1') {
+    app.use('/uploads', express.static('/tmp/uploads'));
+} else {
+    app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+}
 
 // View Engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Disable Caching for Dynamic Routes to prevent session UI bugs
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    next();
+});
+
 
 // Session
 app.use(session({

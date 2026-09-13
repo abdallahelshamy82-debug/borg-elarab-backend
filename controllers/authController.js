@@ -10,23 +10,32 @@ if (!admin.apps.length) {
 }
 
 exports.showLogin = (req, res) => {
+    if (req.session && req.session.user) {
+        if (req.session.user.is_admin || req.session.user.role === 'doctor') {
+            return res.redirect('/admin/dashboard');
+        }
+        return res.redirect('/store/ds');
+    }
     res.render('login');
 };
 
 exports.login = async (req, res) => {
     let { email, password } = req.body;
-    
-    // Automatically strip domain if the user types it out of habit
-    const studentId = email.split('@')[0];
-    email = studentId;
+    email = (email || '').trim();
+    password = (password || '').trim();
 
     try {
-        const user = await User.findOne({ where: { email } });
+        let user = await User.findOne({ where: { email } });
+        if (!user && email.includes('@')) {
+            user = await User.findOne({ where: { email: email.split('@')[0] } });
+        } else if (!user && !email.includes('@')) {
+            user = await User.findOne({ where: { email: email + '@btechu.com' } });
+        }
         
         if (user && await bcrypt.compare(password, user.password)) {
             if (!user.is_active) {
                 req.session.error = 'Your account has been suspended. Please contact the administrator.';
-                return res.redirect('/');
+                return res.redirect('/login');
             }
 
             // Setup session
@@ -36,105 +45,127 @@ exports.login = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 is_admin: user.is_admin,
-                balance: user.balance
+                balance: user.balance,
+                avatar_url: user.avatar_url
             };
 
             if (user.is_admin || user.role === 'doctor') {
                 return res.redirect('/admin/dashboard');
             }
-            return res.redirect('/home');
+            return res.redirect('/store/ds');
         }
 
         req.session.error = 'The provided credentials do not match our records.';
-        res.redirect('/');
+        res.redirect('/login');
     } catch (error) {
         console.error(error);
         req.session.error = 'An error occurred during login.';
-        res.redirect('/');
+        res.redirect('/login');
     }
 };
 
 exports.ssoLogin = async (req, res) => {
-    const { token, redirect } = req.query;
+    const { token, batu_token, redirect } = req.query;
 
-    if (!token) {
-        return res.status(400).send('Missing SSO token');
+    if (!token && !batu_token) {
+        return res.status(400).send('No authentication token provided');
     }
 
     try {
-        // 1. Verify Firebase ID Token
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        
-        // Extract basic info from the token
-        const email = decodedToken.email;
-        let name = decodedToken.name || decodedToken.email.split('@')[0];
-        
-        // Firebase Auth doesn't store role in standard claims by default unless set as custom claims.
-        // We will assume "student" by default if it's not present, unless the email matches admin.
-        let role = decodedToken.role || 'student';
-        
-        if (email === 'admin@borg.com' || email.includes('admin')) {
-            role = 'admin';
+        let email, name, role;
+
+        if (batu_token) {
+            // ── BATU Student Authentication ──
+            const secret = process.env.BATU_SSO_SECRET || 'BorgElArabSecret2026';
+            const parts = batu_token.split('.');
+            if (parts.length !== 2) return res.status(401).send("Invalid BATU Token format");
+            
+            const [payloadBase64, signature] = parts;
+            const expectedSignature = crypto.createHmac('sha256', secret).update(payloadBase64).digest('hex');
+            
+            if (signature !== expectedSignature) {
+                return res.status(401).send("Invalid BATU Token signature");
+            }
+            
+            const payloadData = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
+            
+            if (Date.now() > payloadData.exp) {
+                return res.status(401).send("BATU Token expired");
+            }
+            
+            email = payloadData.email;
+            name = payloadData.name || email.split('@')[0];
+            role = 'student'; // BATU tokens are strictly for students
+            
+        } else if (token) {
+            // ── Firebase Authentication ──
+            const decodedToken = await admin.auth().verifyIdToken(token);
+            email = decodedToken.email;
+            name = decodedToken.name || email.split('@')[0];
+            role = decodedToken.role || 'student';
         }
 
-        // 2. Auto-sync user in our DB
-        let user = await User.findOne({ where: { email } });
-        
-        if (!user) {
-            const randomPassword = await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10);
-            user = await User.create({
-                email: email,
+        if (email === 'admin@borg.com' || email.includes('admin')) {
+            role = 'admin';
+        } else if (email.includes('doctor')) {
+            role = 'doctor';
+        }
+
+        // Auto-sync user in our DB (Safe concurrent registration)
+        const randomPassword = await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10);
+        let [user, created] = await User.findOrCreate({
+            where: { email },
+            defaults: {
                 name: name,
                 role: role,
                 is_admin: role === 'admin',
                 password: randomPassword
-            });
-        } else {
-            // Update name and role if custom claims were provided in the token
-            if (decodedToken.role || decodedToken.name) {
-                await user.update({ 
-                    name: decodedToken.name ? decodedToken.name : user.name, 
-                    role: decodedToken.role ? decodedToken.role : user.role, 
-                    is_admin: (decodedToken.role || user.role) === 'admin' 
-                });
             }
+        });
+        
+        if (!created) {
+            const shouldUpdateRole = (role === 'admin' || role === 'doctor' || (token && role !== 'student'));
+            await user.update({ 
+                name: name ? name : user.name, 
+                role: shouldUpdateRole ? role : user.role, 
+                is_admin: shouldUpdateRole ? (role === 'admin') : user.is_admin 
+            });
         }
 
-        // 3. Log the user in securely
+        // Log the user in securely
         req.session.user = {
             id: user.id,
             name: user.name,
             email: user.email,
             role: user.role,
             is_admin: user.is_admin,
-            balance: user.balance
+            balance: user.balance,
+            avatar_url: user.avatar_url
         };
 
-        // 4. Redirect to specific page if requested
-        if (redirect) {
-            // Basic security check to prevent open redirects
-            if (redirect.startsWith('/')) {
-                return res.redirect(redirect);
-            }
+        if (redirect && redirect.startsWith('/')) {
+            return res.redirect(redirect);
         }
 
-        // 5. Default Redirect based on role
         if (user.is_admin || user.role === 'doctor') {
             return res.redirect('/admin/dashboard');
         }
         return res.redirect('/home');
         
     } catch (error) {
-        console.error('SSO Token Verification Failed:', error);
-        res.status(401).send('Invalid or Expired SSO Token');
+        console.error('SSO Error:', error);
+        res.status(401).send('Authentication Failed');
     }
 };
 
 exports.updateProfile = async (req, res) => {
-    const { name } = req.body;
+    let avatar_url = req.body.avatar_url;
+    if (req.file) {
+        avatar_url = '/uploads/avatars/' + req.file.filename;
+    }
     try {
-        await User.update({ name }, { where: { id: req.session.user.id } });
-        req.session.user.name = name;
+        await User.update({ avatar_url }, { where: { id: req.session.user.id } });
+        req.session.user.avatar_url = avatar_url;
         req.session.success = 'Profile updated successfully.';
         res.redirect('back');
     } catch (error) {
@@ -177,5 +208,5 @@ exports.updatePassword = async (req, res) => {
 
 exports.logout = (req, res) => {
     req.session = null;
-    res.redirect('/');
+    res.redirect('/login');
 };

@@ -1,19 +1,29 @@
 require('dotenv').config();
 const { Sequelize, DataTypes } = require('sequelize');
-const pg = require('pg');
+const path = require('path');
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: 'postgres',
-  dialectModule: pg,
-  protocol: 'postgres',
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false
-    }
-  },
-  logging: false
-});
+let sequelize;
+if (process.env.DATABASE_URL) {
+  const pg = require('pg');
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    dialectModule: pg,
+    protocol: 'postgres',
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    },
+    logging: false
+  });
+} else {
+  sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: path.join(__dirname, '../database.sqlite'),
+    logging: false
+  });
+}
 
 const User = sequelize.define('User', {
   name: { type: DataTypes.STRING, allowNull: false },
@@ -22,7 +32,8 @@ const User = sequelize.define('User', {
   role: { type: DataTypes.STRING, defaultValue: 'student' },
   is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
   is_admin: { type: DataTypes.BOOLEAN, defaultValue: false },
-  balance: { type: DataTypes.INTEGER, defaultValue: 0 }
+  balance: { type: DataTypes.INTEGER, defaultValue: 0 },
+  avatar_url: { type: DataTypes.STRING, allowNull: true }
 });
 
 const Item = sequelize.define('Item', {

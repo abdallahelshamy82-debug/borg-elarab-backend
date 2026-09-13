@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= user.isAdmin() ? 'Admin' : 'Doctor' %> Dashboard | Core System</title>
+    <title><%= user.is_admin ? 'Admin' : 'Doctor' %> Dashboard | Core System</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,11 +18,16 @@
             font-family: 'Rajdhani', sans-serif;
         }
 
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+
         body {
             background-color: #0f1016;
             color: white;
             min-height: 100vh;
-            overflow-x: hidden;
             opacity: 0;
             animation: fadeIn 0.5s ease-in forwards;
         }
@@ -30,11 +35,9 @@
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
             }
         }
 
@@ -85,6 +88,24 @@
         .nav-links button:hover,
         .nav-links a.active {
             color: #ff0055;
+        }
+
+        /* --- Hamburger Menu --- */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 101;
+            position: relative;
+        }
+
+        .hamburger span {
+            width: 24px;
+            height: 2px;
+            background-color: #fff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
         }
 
         .container {
@@ -248,6 +269,8 @@
             z-index: 1000;
         }
 
+
+
         .toast {
             background: #15161e;
             color: #fff;
@@ -316,21 +339,137 @@
         }
 
         @media (max-width: 900px) {
+            .navbar {
+                padding: 15px 20px;
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+                flex-wrap: wrap;
+            }
+            .logo {
+                flex-grow: 1;
+            }
+            .hamburger {
+                display: flex;
+                order: 2;
+                margin-left: auto;
+                justify-content: center;
+                align-items: center;
+                margin-top: 5px;
+            }
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -250px;
+                width: 250px;
+                height: 100vh;
+                background: #15161e;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 80px 30px 30px;
+                box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+                transition: right 0.4s ease;
+                z-index: 100;
+                border-left: 1px solid #2b2d3c;
+            }
+            .nav-links.active {
+                right: 0;
+            }
+            .hamburger.active span:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+                background-color: #ff0055;
+            }
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+            .hamburger.active span:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+                background-color: #ff0055;
+            }
+
             .tab-content.active {
                 grid-template-columns: 1fr;
             }
+            .container {
+                padding: 20px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+                margin-bottom: 30px;
+            }
+            .history-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
         }
     </style>
+<style>
+
+        /* Global Mobile Responsiveness Fallback */
+        html, body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+            width: 100% !important;
+        }
+        * {
+            box-sizing: border-box !important;
+        }
+        img, video, canvas {
+            max-width: 100%;
+        }
+        @media (max-width: 992px) {
+            .container, .admin-container, .main-container, .login-box {
+                width: 100% !important;
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+                grid-template-columns: 1fr !important;
+            }
+            .library-grid, .grid, .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .profile-sidebar, .admin-sidebar {
+                width: 100% !important;
+                position: relative !important;
+                right: 0 !important;
+                height: auto !important;
+            }
+            .history-table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                width: 100% !important;
+            }
+            .toast {
+                min-width: 0 !important;
+                width: 90vw !important;
+                right: 5vw !important;
+            }
+            p, h1, h2, h3, h4, h5, h6, span, div, a, td, th {
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+        }
+
+</style>
 </head>
 
 <body>
 
     <nav class="navbar">
-        <div class="logo"><%= user.isAdmin() ? 'System' : 'Course' %> <span>Management</span></div>
-        <div class="nav-links">
-            <a href="/store.ds" class="active">View Profile</a>
+        <div class="logo"><%= user.is_admin ? 'System' : 'Course' %> <span>Management</span></div>
+        <div class="hamburger" id="hamburgerMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-links" id="navLinks">
+            <a href="/store/ds" class="active">View Profile</a>
             <form action="/logout" method="POST" style="display: inline;">
-                
                 <button type="submit">Logout</button>
             </form>
         </div>
@@ -339,24 +478,24 @@
     <div class="container" style="display: block;">
         
         <div class="tabs">
-            <% if(Auth::user() { %>->isAdmin())
+            <% if(user.is_admin) { %>
             <button class="tab-btn active" onclick="switchTab('users')">User Management</button>
             <% } %>
-            <button class="tab-btn <%= !Auth::user()->isAdmin() ? 'active' : '' %>" onclick="switchTab('courses')">Course Management</button>
+            <button class="tab-btn <%= !user.is_admin ? 'active' : '' %>" onclick="switchTab('courses')">Course Management</button>
         </div>
 
-        <% if(success { %>)
+        <% if(success) { %>
             <div class="toast show" style="margin-bottom: 20px; position: relative; bottom: auto; right: auto; transform: none; min-width: auto; width: 100%;">
                 <span><%= success %></span>
             </div>
         <% } %>
-        <% if(error { %>)
+        <% if(error) { %>
             <div class="toast error show" style="margin-bottom: 20px; position: relative; bottom: auto; right: auto; transform: none; min-width: auto; width: 100%;">
                 <span><%= error %></span>
             </div>
         <% } %>
 
-        <% if(Auth::user() { %>->isAdmin())
+        <% if(user.is_admin) { %>
         <!-- USERS TAB -->
         <div id="users-tab" class="tab-content active">
             <!-- Registration Form Sidebar -->
@@ -366,8 +505,8 @@
             <main class="main-content">
                 <section>
                     <h2 class="section-header">Search User / Reset Password</h2>
-                    <form action="/admin.searchUser" method="GET" style="display: flex; gap: 15px; margin-bottom: 30px;">
-                        <input type="text" name="user_id" required placeholder="Enter User ID (Email)..." style="flex: 1; background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3c4f; padding: 12px; border-radius: 8px; color: #fff; font-size: 16px; outline: none;">
+                    <form action="/admin/users" method="GET" style="display: flex; gap: 15px; margin-bottom: 30px;">
+                        <input type="text" name="query" required placeholder="Enter User ID (Email)..." style="flex: 1; background: rgba(255, 255, 255, 0.02); border: 1px solid #3a3c4f; padding: 12px; border-radius: 8px; color: #fff; font-size: 16px; outline: none;">
                         <button type="submit" class="action-btn" style="width: auto; padding: 0 30px;">Search User</button>
                     </form>
                 </section>
@@ -378,11 +517,11 @@
         <% } %>
 
         <!-- COURSES TAB -->
-        <div id="courses-tab" class="tab-content <%= !Auth::user()->isAdmin() ? 'active' : '' %>">
+        <div id="courses-tab" class="tab-content <%= !user.is_admin ? 'active' : '' %>">
             <!-- Course Upload Sidebar -->
             <aside class="admin-sidebar" style="height: fit-content; border-color: #00ffaa;">
                 <h2 style="color: #00ffaa; border-color: #2b2d3c;">Upload Course Material</h2>
-                <form action="/admin.storeCourse" method="POST" enctype="multipart/form-data">
+                <form action="/admin/courses" method="POST" enctype="multipart/form-data">
                     
                     <div class="input-group">
                         <label for="c_name">Title</label>
@@ -407,13 +546,13 @@
                     </div>
 
                     <div class="input-group">
-                        <label for="image_url">Cover Image (required)</label>
-                        <input type="file" id="image_url" name="image_url" accept="image/*" required style="padding: 10px;">
+                        <label for="cover_image">Cover Image Upload (required)</label>
+                        <input type="file" id="cover_image" name="cover_image" accept="image/*" required style="padding: 10px;">
                     </div>
                     
                     <div class="input-group">
-                        <label for="file_path">Course Material</label>
-                        <input type="file" id="file_path" name="file_path" accept=".pdf,.doc,.docx,.mp4,.zip" style="padding: 10px;">
+                        <label for="material_file">Course Material File</label>
+                        <input type="file" id="material_file" name="material_file" style="padding: 10px;">
                         <small style="color:#888;">Leave empty if physical item</small>
                     </div>
 
@@ -435,21 +574,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($courses as $course)
+                            <% if (courses && courses.length > 0) { courses.forEach(course => { %>
                             <tr>
-                                <td style="font-weight: bold;"><%= $course->name %></td>
-                                <td style="color: #888;"><%= $course->category %></td>
-                                <td><%= $course->price %> Pt</td>
-                                <td>
-                                    <!-- Add delete function later if needed -->
-                                    <span class="status-active">Available</span>
+                                <td style="font-weight: 600;"><%= course.name %></td>
+                                <td style="color: #888;"><%= course.category %></td>
+                                <td style="color: #00ffaa; font-weight: bold;"><%= course.price %> Pt</td>
+                                <td style="display: flex; gap: 10px; align-items: center;">
+                                    <span style="color: #00ffaa; font-weight: 600;">Available</span>
+                                    <form action="/admin/delete-item/<%= course.id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this material?');" style="margin: 0;">
+                                        <button type="submit" style="background: rgba(255, 68, 68, 0.1); color: #ff4444; border: 1px solid #ff4444; border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 12px; font-weight: bold;">Delete</button>
+                                    </form>
                                 </td>
                             </tr>
-                            @empty
+                            <% }) } else { %>
                             <tr>
                                 <td colspan="4" style="text-align: center; color: #888;">No materials uploaded yet.</td>
                             </tr>
-                            @endforelse
+                            <% } %>
                         </tbody>
                     </table>
                 </section>
@@ -470,6 +611,45 @@
             // Re-add active class to clicked button
             event.target.classList.add('active');
         }
+
+        const hamburger = document.getElementById('hamburgerMenu');
+        const navLinks = document.getElementById('navLinks');
+
+        if (hamburger && navLinks) {
+            hamburger.addEventListener('click', () => {
+                hamburger.classList.toggle('active');
+                navLinks.classList.toggle('active');
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!hamburger.contains(e.target) && !navLinks.contains(e.target) && navLinks.classList.contains('active')) {
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                }
+            });
+        }
     </script>
+
+<!-- SECURITY SCRIPT -->
+<style>
+    body { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+    input, textarea { user-select: text; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; }
+</style>
+<script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode === 123) { // F12
+            event.preventDefault();
+        }
+        if (event.ctrlKey && event.shiftKey && (event.keyCode === 73 || event.keyCode === 74)) { // Ctrl+Shift+I/J
+            event.preventDefault();
+        }
+        if (event.ctrlKey && event.keyCode === 85) { // Ctrl+U
+            event.preventDefault();
+        }
+    });
+</script>
 </body>
+
 </html>

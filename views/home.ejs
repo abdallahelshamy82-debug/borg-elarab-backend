@@ -21,7 +21,67 @@
         .hero { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 50px; }
         .hero h1 { font-size: 48px; color: #1a1c29; margin-bottom: 20px; }
         .hero p { font-size: 20px; color: #666; max-width: 600px; margin-bottom: 40px; }
+        
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 768px) {
+            .navbar { flex-direction: column; padding: 15px 20px; gap: 15px; text-align: center; }
+            .nav-links { flex-direction: column; gap: 15px; width: 100%; }
+            .nav-links a, .nav-links form { width: 100%; text-align: center; }
+            .profile-btn { padding: 12px; display: block; }
+            .hero { padding: 30px 20px; }
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; margin-bottom: 30px; }
+            .hero .profile-btn { font-size: 18px; width: 100%; }
+        }
     </style>
+<style>
+
+        /* Global Mobile Responsiveness Fallback */
+        html, body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+            width: 100% !important;
+        }
+        * {
+            box-sizing: border-box !important;
+        }
+        img, video, canvas {
+            max-width: 100%;
+        }
+        @media (max-width: 992px) {
+            .container, .admin-container, .main-container, .login-box {
+                width: 100% !important;
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+                grid-template-columns: 1fr !important;
+            }
+            .library-grid, .grid, .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .profile-sidebar, .admin-sidebar {
+                width: 100% !important;
+                position: relative !important;
+                right: 0 !important;
+                height: auto !important;
+            }
+            .history-table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                width: 100% !important;
+            }
+            .toast {
+                min-width: 0 !important;
+                width: 90vw !important;
+                right: 5vw !important;
+            }
+            p, h1, h2, h3, h4, h5, h6, span, div, a, td, th {
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+        }
+
+</style>
 </head>
 
 <body>
@@ -31,7 +91,7 @@
             <a href="#">Home</a>
             <a href="#">News</a>
             <a href="#">Colleges</a>
-            <a href="{{ route('store.ds') }}" class="profile-btn">My Profile (Digital Services)</a>
+            <a href="/store/ds" class="profile-btn">My Profile (Digital Services)</a>
             <form action="/logout" method="POST" style="display: inline; margin-left: 10px;">
                 
                 <button type="submit" style="background: none; border: none; color: #ff4444; font-size: 16px; font-weight: 600; text-transform: uppercase; cursor: pointer;">Logout</button>
@@ -42,7 +102,28 @@
     <div class="hero">
         <h1>Welcome back, <%= user.name %>!</h1>
         <p>This is the main university portal. To access your courses, digital materials, and points balance, please navigate to your Digital Profile.</p>
-        <a href="{{ route('store.ds') }}" class="profile-btn" style="text-decoration: none; font-size: 20px; padding: 15px 40px;">Go to My Profile</a>
+        <a href="/store/ds" class="profile-btn" style="text-decoration: none; font-size: 20px; padding: 15px 40px;">Go to My Profile</a>
     </div>
+
+<!-- SECURITY SCRIPT -->
+<style>
+    body { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
+    input, textarea { user-select: text; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; }
+</style>
+<script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode === 123) { // F12
+            event.preventDefault();
+        }
+        if (event.ctrlKey && event.shiftKey && (event.keyCode === 73 || event.keyCode === 74)) { // Ctrl+Shift+I/J
+            event.preventDefault();
+        }
+        if (event.ctrlKey && event.keyCode === 85) { // Ctrl+U
+            event.preventDefault();
+        }
+    });
+</script>
 </body>
+
 </html>

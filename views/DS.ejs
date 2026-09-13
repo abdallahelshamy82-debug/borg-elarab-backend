@@ -18,11 +18,16 @@
             font-family: 'Rajdhani', sans-serif;
         }
 
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+
         body {
             background-color: #0f1016;
             color: white;
             min-height: 100vh;
-            overflow-x: hidden;
             opacity: 0;
             animation: fadeIn 0.5s ease-in forwards;
         }
@@ -154,11 +159,13 @@
         /* --- محتوى الصفحة --- */
         .container {
             padding: 40px 50px;
+            width: 100%;
             max-width: 1300px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: 300px 1fr;
             gap: 40px;
+            box-sizing: border-box;
         }
 
         /* --- الشريط الجانبي (البروفايل) --- */
@@ -197,6 +204,8 @@
             font-size: 16px;
             margin-bottom: 30px;
             letter-spacing: 1px;
+            word-wrap: break-word;
+            word-break: break-all;
         }
 
         .balance-box {
@@ -314,13 +323,25 @@
         }
 
         /* جدول العمليات */
+        .history-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #2b2d3c;
+            background: #15161e;
+        }
+
+        .history-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        .history-wrapper::-webkit-scrollbar-thumb {
+            background: #2b2d3c;
+            border-radius: 4px;
+        }
+
         .history-table {
             width: 100%;
             border-collapse: collapse;
-            background: #15161e;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #2b2d3c;
         }
 
         .history-table th,
@@ -445,9 +466,25 @@
             transition: width 2s ease-in-out;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 992px) {
             .container {
                 grid-template-columns: 1fr;
+                padding: 15px;
+                gap: 15px;
+            }
+            .profile-sidebar {
+                padding: 15px;
+            }
+            .section-header {
+                font-size: 20px;
+            }
+            .library-grid {
+                grid-template-columns: 1fr;
+            }
+            .history-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
             }
         }
 
@@ -606,6 +643,54 @@
             box-shadow: 0 0 15px rgba(0, 255, 170, 0.1);
         }
     </style>
+<style>
+
+        /* Global Mobile Responsiveness Fallback */
+        html, body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+            width: 100% !important;
+        }
+        * {
+            box-sizing: border-box !important;
+        }
+        img, video, canvas {
+            max-width: 100%;
+        }
+        @media (max-width: 992px) {
+            .container, .admin-container, .main-container, .login-box {
+                width: 100% !important;
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+                grid-template-columns: 1fr !important;
+            }
+            .library-grid, .grid, .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .profile-sidebar, .admin-sidebar {
+                width: 100% !important;
+                position: relative !important;
+                right: 0 !important;
+                height: auto !important;
+            }
+            .history-table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+                width: 100% !important;
+            }
+            .toast {
+                min-width: 0 !important;
+                width: 90vw !important;
+                right: 5vw !important;
+            }
+            p, h1, h2, h3, h4, h5, h6, span, div, a, td, th {
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+        }
+
+</style>
 </head>
 
 <body>
@@ -635,7 +720,7 @@
             <button class="close-modal" onclick="closeEditProfile()">×</button>
             <h3 class="modal-title">Edit Profile</h3>
 
-            <form action="/profile/update" method="POST">
+            <form action="/profile/update" method="POST" enctype="multipart/form-data">
                 
                 <div class="input-group">
                     <label for="editName">Display Name</label>
@@ -643,8 +728,8 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="editAvatar">Avatar Initials (max 2 letters)</label>
-                    <input type="text" id="editAvatar" placeholder="e.g. ST" maxlength="2" disabled value="<%= user.name.substring(0, 2) %>" title="Auto-generated from name">
+                    <label for="editAvatar">Avatar Image</label>
+                    <input type="file" id="editAvatar" name="avatar" accept="image/*">
                 </div>
 
                 <button type="submit" class="action-btn"
@@ -678,7 +763,13 @@
 
     <div class="container">
         <aside class="profile-sidebar">
-            <div class="avatar" id="sidebarAvatar"><%= user.name.substring(0, 2) %></div>
+            <div class="avatar" id="sidebarAvatar">
+                <% if(user.avatar_url) { %>
+                    <img src="<%= user.avatar_url %>" alt="Avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                <% } else { %>
+                    <%= user.name.substring(0, 2) %>
+                <% } %>
+            </div>
             <h2 class="student-name" id="sidebarName"><%= user.name %></h2>
             <p class="student-id" id="sidebarId">Email: <%= user.email %></p>
 
@@ -739,56 +830,56 @@
                 <% } %>
 
                 <div class="library-grid" id="dashboardLibrary">
-                    @forelse($items as $item)
+                    <% if (purchases && purchases.length > 0) { %>
+                        <% let seen = {}; purchases.forEach(function(purchase) { const item = purchase.Item; if(item && !seen[item.id]) { seen[item.id] = true; %>
                         <div class="lib-card animate-card">
-                            <img src="{{ asset('storage/' . $item->image_url) }}" alt="{{ $item->name }}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 1px solid #2b2d3c;">
-                            <div class="lib-type">{{ $item->category }}</div>
-                            <h3 class="lib-title">{{ $item->name }}</h3>
-                            <p style="color: #888; font-size: 14px; margin-bottom: 15px; height: 40px; overflow: hidden;">{{ $item->description }}</p>
-                            <p style="color: #00ffaa; font-weight: bold; margin-bottom: 15px;">{{ $item->price }} Pt</p>
-                            <form action="{{ route('store.purchase', $item->id) }}" method="POST">
-                                
-                                <button type="submit" class="access-btn">Buy Feature</button>
-                            </form>
+                            <img src="<%= item.image_url %>" alt="<%= item.name %>" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 1px solid #2b2d3c;">
+                            <div class="lib-type"><%= item.category %></div>
+                            <h3 class="lib-title"><%= item.name %></h3>
+                            <p style="color: #888; font-size: 14px; margin-bottom: 15px; height: 40px; overflow: hidden;"><%= item.description %></p>
+                            <a href="<%= item.file_path || '#' %>" target="_blank" class="access-btn" style="display: block; text-align: center; text-decoration: none; box-sizing: border-box;">Open Document</a>
                         </div>
-                    @empty
+                        <% } }); %>
+                    <% } else { %>
                         <div class="empty-state" style="grid-column: 1 / -1;">
-                            No items available in your library yet. <a href="/store/ps">Browse Store</a>
+                            No items purchased yet. <a href="/store/ps">Browse Store</a>
                         </div>
-                    @endforelse
+                    <% } %>
                 </div>
             </section>
 
             <section>
                 <h2 class="section-header">Transaction History</h2>
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dashboardHistory">
-                        @foreach(Auth::user()->purchases()->with('item')->get() as $purchase)
-                        <tr>
-                            <td>{{ $purchase->created_at->format('Y-m-d') }}</td>
-                            <td>Purchased: {{ $purchase->item->name }}</td>
-                            <td class="type-sub">-{{ $purchase->item->price }} Pt</td>
-                            <td>Completed</td>
-                        </tr>
-                        @endforeach
-                        @foreach(Auth::user()->recharges as $recharge)
-                        <tr>
-                            <td>{{ $recharge->created_at->format('Y-m-d') }}</td>
-                            <td>Recharge points</td>
-                            <td class="type-add">+{{ $recharge->amount }} Pt</td>
-                            <td>{{ ucfirst($recharge->status) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                <div class="history-wrapper">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboardHistory">
+                            <% if (transactions && transactions.length > 0) { %>
+                                <% transactions.forEach(function(tx) { %>
+                                <tr>
+                                    <td><%= new Date(tx.date).toISOString().split('T')[0] %></td>
+                                    <td><%= tx.description %></td>
+                                    <td class="<%= tx.type === 'recharge' ? 'type-add' : 'type-sub' %>">
+                                        <%= tx.type === 'recharge' ? '+' : '-' %><%= tx.amount %> Pt
+                                    </td>
+                                    <td><%= tx.status %></td>
+                                </tr>
+                                <% }); %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #888;">No transactions yet.</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
         </main>

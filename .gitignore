@@ -1,3 +1,10 @@
 .vercel
 node_modules
 .env
+database.sqlite*
+*.sqlite*
+sidebar_css.jsonl
+test_live.js
+fix_ds.js
+responsive.js
+
