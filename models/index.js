@@ -93,7 +93,7 @@ Recharge.belongsTo(User, { foreignKey: 'user_id' });
 const bcrypt = require('bcryptjs');
 
 // Sync database automatically
-sequelize.sync().then(async () => {
+sequelize.sync({ alter: true }).then(async () => {
     console.log("Database synced");
     try {
         const userCount = await User.count();
