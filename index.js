@@ -44,8 +44,15 @@ app.use((req, res, next) => {
 });
 
 // Import Routes
-const webRoutes = require('./routes/web');
-app.use('/', webRoutes);
+try {
+    const webRoutes = require('./routes/web');
+    app.use('/', webRoutes);
+} catch (e) {
+    console.error("Critical Startup Error:", e);
+    app.use((req, res) => {
+        res.status(500).type('text/plain').send("Server Startup Error:\n" + (e.stack || e.message));
+    });
+}
 
 // Server start (local testing)
 if (require.main === module) {
