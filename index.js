@@ -43,6 +43,17 @@ app.use((req, res, next) => {
     next();
 });
 
+// Wait for DB sync before serving any request
+const { dbReady } = require('./models');
+app.use(async (req, res, next) => {
+    try {
+        await dbReady;
+        next();
+    } catch (e) {
+        res.status(503).type('text/plain').send('Database unavailable: ' + (e.message || e));
+    }
+});
+
 // Import Routes
 try {
     const webRoutes = require('./routes/web');

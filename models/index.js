@@ -92,82 +92,33 @@ Recharge.belongsTo(User, { foreignKey: 'user_id' });
 
 const bcrypt = require('bcryptjs');
 
-// Sync database automatically
-sequelize.sync({ alter: true }).then(async () => {
+// DB Ready promise - ensures tables exist before requests are served
+const dbReady = sequelize.sync({ force: false, alter: false }).catch(() => {
+    return sequelize.sync({ force: true }); // force create on failure
+}).then(async () => {
     console.log("Database synced");
     try {
         const userCount = await User.count();
         if (userCount === 0) {
             const hashedPassword = await bcrypt.hash('123456', 10);
-            await User.create({
-                name: 'Admin User',
-                email: 'admin@system.com',
-                password: hashedPassword,
-                role: 'admin',
-                is_admin: true,
-                is_active: true
-            });
-            await User.create({
-                name: 'Dr. Ahmed',
-                email: 'doctor@system.com',
-                password: hashedPassword,
-                role: 'doctor',
-                is_admin: false,
-                is_active: true
-            });
-            await User.create({
-                name: 'Student User',
-                email: 'student@system.com',
-                password: hashedPassword,
-                role: 'student',
-                is_admin: false,
-                is_active: true,
-                balance: 500
-            });
-            await User.create({
-                name: 'عبدالله محمد علي حسن',
-                email: '2420766',
-                password: hashedPassword,
-                role: 'student',
-                is_admin: false,
-                is_active: true,
-                balance: 300
-            });
+            await User.create({ name: 'Admin User', email: 'admin@system.com', password: hashedPassword, role: 'admin', is_admin: true, is_active: true });
+            await User.create({ name: 'Dr. Ahmed', email: 'doctor@system.com', password: hashedPassword, role: 'doctor', is_admin: false, is_active: true });
+            await User.create({ name: 'Student User', email: 'student@system.com', password: hashedPassword, role: 'student', is_admin: false, is_active: true, balance: 500 });
+            await User.create({ name: 'عبدالله محمد علي حسن', email: '2420766', password: hashedPassword, role: 'student', is_admin: false, is_active: true, balance: 300 });
             console.log("Auto-seeded initial users.");
         }
         const itemCount = await Item.count();
         if (itemCount === 0) {
             await Item.bulkCreate([
-                {
-                    name: 'Physics 101 Summary',
-                    description: 'ملخص شامل لمادة الفيزياء الترم الأول',
-                    category: 'Notes',
-                    price: 150,
-                    image_url: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80',
-                    file_path: '#'
-                },
-                {
-                    name: 'Computer Architecture Lectures',
-                    description: 'محاضرات وسكاشن مادة عمارة الحاسب بالكامل',
-                    category: 'Video Lectures',
-                    price: 250,
-                    image_url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80',
-                    file_path: '#'
-                },
-                {
-                    name: 'Mathematics 1 Previous Exams',
-                    description: 'امتحانات السنوات السابقة مع نماذج الإجابة',
-                    category: 'Exams',
-                    price: 100,
-                    image_url: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80',
-                    file_path: '#'
-                }
+                { name: 'Physics 101 Summary', description: 'ملخص شامل لمادة الفيزياء الترم الأول', category: 'Notes', price: 150, image_url: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=600&q=80', file_path: '#' },
+                { name: 'Computer Architecture Lectures', description: 'محاضرات وسكاشن مادة عمارة الحاسب بالكامل', category: 'Video Lectures', price: 250, image_url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80', file_path: '#' },
+                { name: 'Mathematics 1 Previous Exams', description: 'امتحانات السنوات السابقة مع نماذج الإجابة', category: 'Exams', price: 100, image_url: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80', file_path: '#' }
             ]);
             console.log("Auto-seeded initial items.");
         }
     } catch (e) {
         console.error("Auto-seed error:", e);
     }
-}).catch(console.error);
+}).catch(e => console.error("DB sync failed:", e));
 
-module.exports = { sequelize, User, Item, Purchase, Recharge };
+module.exports = { sequelize, User, Item, Purchase, Recharge, dbReady };
