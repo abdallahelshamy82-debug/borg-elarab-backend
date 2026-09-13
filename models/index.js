@@ -5,9 +5,10 @@ const path = require('path');
 const fs = require('fs');
 
 let sequelize;
-if (process.env.DATABASE_URL) {
+const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+if (dbUrl) {
   const pg = require('pg');
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
+  sequelize = new Sequelize(dbUrl, {
     dialect: 'postgres',
     dialectModule: pg,
     protocol: 'postgres',
