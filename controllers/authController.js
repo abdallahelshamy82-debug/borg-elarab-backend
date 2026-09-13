@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { User } = require('../models');
 const admin = require('firebase-admin');
@@ -76,7 +76,7 @@ exports.ssoLogin = async (req, res) => {
 
         if (batu_token) {
             // ── BATU Student Authentication ──
-            const secret = process.env.BATU_SSO_SECRET || 'BorgElArabSecret2026';
+            const secret = process.env.BATU_SSO_SECRET || process.env.SSO_SECRET || 'BorgElArabSecret2026';
             const parts = batu_token.split('.');
             if (parts.length !== 2) return res.status(401).send("Invalid BATU Token format");
             
@@ -154,7 +154,7 @@ exports.ssoLogin = async (req, res) => {
         
     } catch (error) {
         console.error('SSO Error:', error);
-        res.status(401).send('Authentication Failed');
+        res.status(401).send('Authentication Failed: ' + (error && error.message ? error.message : 'Unknown'));
     }
 };
 

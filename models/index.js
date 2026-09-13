@@ -2,6 +2,8 @@ require('dotenv').config();
 const { Sequelize, DataTypes } = require('sequelize');
 const path = require('path');
 
+const fs = require('fs');
+
 let sequelize;
 if (process.env.DATABASE_URL) {
   const pg = require('pg');
@@ -18,9 +20,22 @@ if (process.env.DATABASE_URL) {
     logging: false
   });
 } else {
+  let dbPath = path.join(__dirname, '../database.sqlite');
+  if (process.env.VERCEL === '1') {
+    dbPath = '/tmp/database.sqlite';
+    const bundledDb = path.join(__dirname, '../database.sqlite');
+    if (!fs.existsSync(dbPath) && fs.existsSync(bundledDb)) {
+      try {
+        fs.copyFileSync(bundledDb, dbPath);
+      } catch (e) {
+        console.error('Failed to copy bundled sqlite to /tmp:', e);
+      }
+    }
+  }
+
   sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: path.join(__dirname, '../database.sqlite'),
+    storage: dbPath,
     logging: false
   });
 }
@@ -68,7 +83,7 @@ User.hasMany(Recharge, { foreignKey: 'user_id' });
 Recharge.belongsTo(User, { foreignKey: 'user_id' });
 
 // Sync database automatically
-sequelize.sync({ alter: true }).then(() => {
+sequelize.sync().then(() => {
     console.log("Database synced");
 }).catch(console.error);
 
