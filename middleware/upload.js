@@ -18,6 +18,12 @@ uploadDirs.forEach(dir => {
     }
 });
 
+const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+const MATERIAL_EXTENSIONS = new Set([
+    '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx',
+    '.txt', '.zip', '.rar', '.mp4', '.webm', '.jpg', '.jpeg', '.png', '.webp'
+]);
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         if (file.fieldname === 'avatar') {
@@ -32,10 +38,37 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
+        const safeExt = path.extname(file.originalname || '').toLowerCase().replace(/[^a-z0-9.]/g, '');
+        cb(null, uniqueSuffix + safeExt);
     }
 });
 
-const upload = multer({ storage: storage });
+/**
+ * Enforce allowlisted file extensions per field to block SVG/HTML/JS XSS uploads.
+ */
+function fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (file.fieldname === 'avatar' || file.fieldname === 'cover_image') {
+        if (!IMAGE_EXTENSIONS.has(ext) || !file.mimetype.startsWith('image/') || ext === '.svg') {
+            return cb(new Error('Only JPG, PNG, GIF, or WebP images are allowed.'));
+        }
+        return cb(null, true);
+    }
+    if (file.fieldname === 'material_file') {
+        if (!MATERIAL_EXTENSIONS.has(ext)) {
+            return cb(new Error('Unsupported material file format.'));
+        }
+        return cb(null, true);
+    }
+    return cb(new Error('Unexpected upload field.'));
+}
+
+const upload = multer({
+    storage,
+    fileFilter,
+    limits: {
+        fileSize: 15 * 1024 * 1024 // 15 MB max per file
+    }
+});
 
 module.exports = upload;

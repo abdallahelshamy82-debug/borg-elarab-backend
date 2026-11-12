@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head', { pageTitle: (typeof statusCode !== 'undefined' ? statusCode : 'Error') + ' | Borg El Arab Tech' }) %>
+    <style>
+        .err-shell {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+        .err-card {
+            width: 100%;
+            max-width: 500px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-lg);
+            padding: 36px 28px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+        .err-code {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 64px;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+        .err-card h1 {
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        .err-card p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar', { showBalanceBadge: false }) %>
+
+    <main class="err-shell">
+        <div class="err-card">
+            <div class="err-code"><%= typeof statusCode !== 'undefined' ? statusCode : 500 %></div>
+            <h1><%= typeof title !== 'undefined' ? title : 'Something went wrong' %></h1>
+            <p><%= typeof message !== 'undefined' ? message : 'An unexpected error occurred.' %></p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="<%= user ? '/store/ds' : '/login' %>" class="btn btn-primary" style="flex: 1;">
+                    <%= user ? 'Return to Dashboard' : 'Go to Login' %>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <%- include('partials/scripts') %>
+</body>
+</html>

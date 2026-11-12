@@ -1,0 +1,72 @@
+<%
+    const navPath = typeof currentPath !== 'undefined' ? currentPath : '';
+    const isAdminOrDoc = user && (user.is_admin || user.role === 'doctor' || user.role === 'admin');
+    const isAdminPage = navPath.startsWith('/admin');
+%>
+<nav class="navbar">
+    <div class="navbar-left">
+        <a href="<%= isAdminOrDoc && isAdminPage ? '/admin/dashboard' : '/store/ds' %>" class="logo">
+            Borg El Arab <span><%= isAdminPage ? 'Admin' : 'Tech' %></span>
+        </a>
+    </div>
+
+    <% if (user) { %>
+    <div class="nav-links">
+        <% if (isAdminOrDoc) { %>
+            <a href="/admin/dashboard" class="nav-admin-link <%= navPath.startsWith('/admin') ? 'active' : '' %>">Management</a>
+        <% } %>
+        <a href="/home" class="<%= navPath === '/home' ? 'active' : '' %>">Portal</a>
+        <a href="/store/ds" class="<%= navPath === '/store/ds' ? 'active' : '' %>">Dashboard</a>
+        <a href="/store/ps" class="<%= navPath === '/store/ps' ? 'active' : '' %>">Store</a>
+        <a href="/recharge" class="<%= navPath === '/recharge' ? 'active' : '' %>">Recharge</a>
+    </div>
+
+    <div class="nav-right">
+        <% if (typeof showBalanceBadge !== 'undefined' && showBalanceBadge) { %>
+            <a href="/recharge" class="balance-badge tabular-nums" title="Top up points">
+                <%= user.balance || 0 %> Pt
+            </a>
+        <% } %>
+        <form action="/logout" method="POST" class="nav-links" style="gap: 0;">
+            <button type="submit" class="nav-logout-btn">Logout</button>
+        </form>
+        <button type="button" class="hamburger" id="hamburgerMenu" aria-label="Open menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+    <% } %>
+</nav>
+
+<% if (user) { %>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="mobile-drawer" id="mobileDrawer" aria-label="Mobile Navigation">
+    <div class="drawer-header">
+        <span class="logo" style="font-size: 18px;">Borg El Arab <span>Tech</span></span>
+        <button type="button" class="drawer-close" id="drawerCloseBtn" aria-label="Close menu">&times;</button>
+    </div>
+
+    <div class="drawer-user-card">
+        <div class="drawer-user-name"><%= user.name %></div>
+        <div class="drawer-user-meta"><%= user.email %></div>
+        <div class="drawer-balance tabular-nums"><%= user.balance || 0 %> Pt</div>
+    </div>
+
+    <nav class="drawer-nav">
+        <% if (isAdminOrDoc) { %>
+            <a href="/admin/dashboard" class="<%= navPath === '/admin/dashboard' ? 'active' : '' %>">Management Panel</a>
+        <% } %>
+        <% if (user.is_admin || user.role === 'admin') { %>
+            <a href="/admin/users" class="<%= navPath.startsWith('/admin/users') ? 'active' : '' %>">User Lookup</a>
+        <% } %>
+        <a href="/home" class="<%= navPath === '/home' ? 'active' : '' %>">Portal Hub</a>
+        <a href="/store/ds" class="<%= navPath === '/store/ds' ? 'active' : '' %>">My Dashboard</a>
+        <a href="/store/ps" class="<%= navPath === '/store/ps' ? 'active' : '' %>">Resource Store</a>
+        <a href="/recharge" class="<%= navPath === '/recharge' ? 'active' : '' %>">Recharge Points</a>
+        <form action="/logout" method="POST" style="margin-top: auto; padding-top: 16px;">
+            <button type="submit" class="drawer-logout">Logout</button>
+        </form>
+    </nav>
+</aside>
+<% } %>

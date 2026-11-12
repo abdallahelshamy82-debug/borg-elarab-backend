@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('partials/head', { pageTitle: (typeof title !== 'undefined' ? title : 'Payment Status') + ' | Borg El Arab Tech' }) %>
+    <style>
+        .result-shell {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+        .result-card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-lg);
+            padding: 36px 28px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+        .result-icon {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+        }
+        .result-icon.ok {
+            background: rgba(0, 255, 170, 0.14);
+            border: 2px solid #00ffaa;
+            color: #00ffaa;
+        }
+        .result-icon.fail {
+            background: var(--danger-dim);
+            border: 2px solid var(--danger);
+            color: var(--danger);
+        }
+        .result-card h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .result-card p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar', { showBalanceBadge: false }) %>
+
+    <main class="result-shell">
+        <div class="result-card">
+            <div class="result-icon <%= ok ? 'ok' : 'fail' %>">
+                <%= ok ? '✓' : '!' %>
+            </div>
+            <h1><%= title %></h1>
+            <p><%= message %></p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="<%= user ? '/store/ds' : '/login' %>" class="btn btn-primary" style="flex: 1;">
+                    <%= user ? 'Go to Dashboard' : 'Sign In to Dashboard' %>
+                </a>
+                <a href="/recharge" class="btn btn-outline" style="flex: 1;">Back to Recharge</a>
+            </div>
+        </div>
+    </main>
+
+    <%- include('partials/scripts') %>
+</body>
+</html>

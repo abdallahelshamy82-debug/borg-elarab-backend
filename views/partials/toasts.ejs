@@ -1,0 +1,11 @@
+<div id="toast-container"></div>
+<% if (typeof success !== 'undefined' && success) { %>
+    <div class="alert-banner success" role="status">
+        <span><%= success %></span>
+    </div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert-banner error" role="alert">
+        <span><%= error %></span>
+    </div>
+<% } %>

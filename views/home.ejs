@@ -1,129 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>University Main Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <%- include('partials/head', { pageTitle: 'Student Portal Hub | Borg El Arab Tech' }) %>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; }
-        body { background-color: #f4f6f9; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
-        .navbar { background: #ffffff; border-bottom: 1px solid #ddd; padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .logo { font-size: 24px; font-weight: 700; color: #1a1c29; letter-spacing: 1px; text-transform: uppercase; }
-        .logo span { color: #0088ff; }
-        .nav-links { display: flex; gap: 30px; align-items: center; }
-        .nav-links a { color: #555; text-decoration: none; font-size: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s; }
-        .nav-links a:hover { color: #0088ff; }
-        .profile-btn { background: #0088ff; color: white !important; padding: 10px 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 136, 255, 0.3); transition: all 0.3s; }
-        .profile-btn:hover { background: #0066cc; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 136, 255, 0.4); }
-        
-        .hero { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 50px; }
-        .hero h1 { font-size: 48px; color: #1a1c29; margin-bottom: 20px; }
-        .hero p { font-size: 20px; color: #666; max-width: 600px; margin-bottom: 40px; }
-        
-        /* --- Mobile Responsiveness --- */
-        @media (max-width: 768px) {
-            .navbar { flex-direction: column; padding: 15px 20px; gap: 15px; text-align: center; }
-            .nav-links { flex-direction: column; gap: 15px; width: 100%; }
-            .nav-links a, .nav-links form { width: 100%; text-align: center; }
-            .profile-btn { padding: 12px; display: block; }
-            .hero { padding: 30px 20px; }
-            .hero h1 { font-size: 32px; }
-            .hero p { font-size: 16px; margin-bottom: 30px; }
-            .hero .profile-btn { font-size: 18px; width: 100%; }
+        .portal-hero {
+            background: linear-gradient(145deg, rgba(0, 255, 170, 0.08), rgba(0, 163, 255, 0.05));
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-lg);
+            padding: 36px 28px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .portal-hero h1 {
+            font-size: clamp(26px, 4vw, 38px);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .portal-hero p {
+            color: var(--text-secondary);
+            margin-top: 8px;
+            max-width: 600px;
+        }
+        .portal-balance-card {
+            background: var(--bg-surface);
+            border: 1px solid rgba(0, 255, 170, 0.4);
+            border-radius: var(--radius-md);
+            padding: 18px 24px;
+            min-width: 210px;
+            text-align: center;
+        }
+        .portal-balance-card .lbl {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+        .portal-balance-card .val {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--accent);
+            margin: 4px 0;
+        }
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+        .hub-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            text-decoration: none;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .hub-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+        }
+        .hub-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: var(--accent-dim);
+            border: 1px solid rgba(0, 255, 170, 0.3);
+            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .hub-card h2 {
+            font-size: 22px;
+            color: var(--text-primary);
+        }
+        .hub-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            flex: 1;
+        }
+        .hub-cta {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
         }
     </style>
-<style>
-
-        /* Global Mobile Responsiveness Fallback */
-        html, body {
-            overflow-x: hidden !important;
-            max-width: 100vw !important;
-            width: 100% !important;
-        }
-        * {
-            box-sizing: border-box !important;
-        }
-        img, video, canvas {
-            max-width: 100%;
-        }
-        @media (max-width: 992px) {
-            .container, .admin-container, .main-container, .login-box {
-                width: 100% !important;
-                padding-left: 15px !important;
-                padding-right: 15px !important;
-                grid-template-columns: 1fr !important;
-            }
-            .library-grid, .grid, .stats-grid {
-                grid-template-columns: 1fr !important;
-            }
-            .profile-sidebar, .admin-sidebar {
-                width: 100% !important;
-                position: relative !important;
-                right: 0 !important;
-                height: auto !important;
-            }
-            .history-table {
-                display: block !important;
-                overflow-x: auto !important;
-                white-space: nowrap !important;
-                width: 100% !important;
-            }
-            .toast {
-                min-width: 0 !important;
-                width: 90vw !important;
-                right: 5vw !important;
-            }
-            p, h1, h2, h3, h4, h5, h6, span, div, a, td, th {
-                word-wrap: break-word !important;
-                overflow-wrap: break-word !important;
-            }
-        }
-
-</style>
 </head>
-
 <body>
-    <nav class="navbar">
-        <div class="logo">Borg El Arab <span>University</span></div>
-        <div class="nav-links">
-            <a href="#">Home</a>
-            <a href="#">News</a>
-            <a href="#">Colleges</a>
-            <a href="/store/ds" class="profile-btn">My Profile (Digital Services)</a>
-            <form action="/logout" method="POST" style="display: inline; margin-left: 10px;">
-                
-                <button type="submit" style="background: none; border: none; color: #ff4444; font-size: 16px; font-weight: 600; text-transform: uppercase; cursor: pointer;">Logout</button>
-            </form>
-        </div>
-    </nav>
+    <%- include('partials/navbar', { showBalanceBadge: true }) %>
 
-    <div class="hero">
-        <h1>Welcome back, <%= user.name %>!</h1>
-        <p>This is the main university portal. To access your courses, digital materials, and points balance, please navigate to your Digital Profile.</p>
-        <a href="/store/ds" class="profile-btn" style="text-decoration: none; font-size: 20px; padding: 15px 40px;">Go to My Profile</a>
-    </div>
+    <main class="page-shell">
+        <%- include('partials/toasts') %>
 
-<!-- SECURITY SCRIPT -->
-<style>
-    body { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; }
-    input, textarea { user-select: text; -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; }
-</style>
-<script>
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('keydown', function (event) {
-        if (event.keyCode === 123) { // F12
-            event.preventDefault();
-        }
-        if (event.ctrlKey && event.shiftKey && (event.keyCode === 73 || event.keyCode === 74)) { // Ctrl+Shift+I/J
-            event.preventDefault();
-        }
-        if (event.ctrlKey && event.keyCode === 85) { // Ctrl+U
-            event.preventDefault();
-        }
-    });
-</script>
+        <section class="portal-hero">
+            <div>
+                <span class="badge badge-success" style="margin-bottom: 10px;">Digital Services Active</span>
+                <h1>Welcome back, <%= user.name %></h1>
+                <p>Access your unlocked course library, manage your Core Points wallet, recharge securely with Paymob, and explore new university resources.</p>
+            </div>
+            <div class="portal-balance-card">
+                <div class="lbl">Available Balance</div>
+                <div class="val tabular-nums"><%= user.balance || 0 %> Pt</div>
+                <a href="/recharge" class="btn btn-primary btn-sm btn-block">Top-up Points</a>
+            </div>
+        </section>
+
+        <section class="hub-grid">
+            <a href="/store/ds" class="hub-card">
+                <div class="hub-icon">&#128218;</div>
+                <h2>My Dashboard &amp; Library</h2>
+                <p>View your profile, download or open purchased study materials, and inspect your transaction history.</p>
+                <span class="hub-cta">Open Dashboard &rarr;</span>
+            </a>
+
+            <a href="/store/ps" class="hub-card">
+                <div class="hub-icon">&#128722;</div>
+                <h2>Resource Store</h2>
+                <p>Browse lecture notes, video courses, previous exams, and project files using your points balance.</p>
+                <span class="hub-cta">Browse Store &rarr;</span>
+            </a>
+
+            <a href="/recharge" class="hub-card">
+                <div class="hub-icon">&#9889;</div>
+                <h2>Recharge Wallet</h2>
+                <p>Top up Core Points instantly via Paymob checkout (2 Pt = 1 EGP) with verified security.</p>
+                <span class="hub-cta">Recharge Now &rarr;</span>
+            </a>
+
+            <% if (user && (user.is_admin || user.role === 'doctor' || user.role === 'admin')) { %>
+            <a href="/admin/dashboard" class="hub-card" style="border-color: rgba(255, 46, 110, 0.4);">
+                <div class="hub-icon" style="background: rgba(255, 46, 110, 0.12); border-color: rgba(255, 46, 110, 0.4); color: #ff2e6e;">&#9881;</div>
+                <h2>Management Panel</h2>
+                <p>Publish new course materials, review store metrics, and manage university accounts.</p>
+                <span class="hub-cta" style="color: #ff2e6e;">Open Management &rarr;</span>
+            </a>
+            <% } %>
+        </section>
+    </main>
+
+    <%- include('partials/scripts') %>
 </body>
-
 </html>

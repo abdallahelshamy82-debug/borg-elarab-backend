@@ -81,21 +81,20 @@ const Recharge = sequelize.define('Recharge', {
 });
 
 // Relationships
-User.hasMany(Purchase, { foreignKey: 'user_id' });
+User.hasMany(Purchase, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 Purchase.belongsTo(User, { foreignKey: 'user_id' });
 
-Item.hasMany(Purchase, { foreignKey: 'item_id' });
+Item.hasMany(Purchase, { foreignKey: 'item_id', onDelete: 'SET NULL' });
 Purchase.belongsTo(Item, { foreignKey: 'item_id' });
 
-User.hasMany(Recharge, { foreignKey: 'user_id' });
+User.hasMany(Recharge, { foreignKey: 'user_id', onDelete: 'CASCADE' });
 Recharge.belongsTo(User, { foreignKey: 'user_id' });
 
 const bcrypt = require('bcryptjs');
 
-// DB Ready promise - ensures tables exist before requests are served
-const dbReady = sequelize.sync({ force: false, alter: false }).catch(() => {
-    return sequelize.sync({ force: true }); // force create on failure
-}).then(async () => {
+// DB Ready promise - creates missing tables safely without ever dropping existing data.
+// Resolves to null on success, or the Error object on failure to avoid UnhandledPromiseRejection.
+const dbReady = sequelize.sync({ force: false, alter: false }).then(async () => {
     console.log("Database synced");
     try {
         const userCount = await User.count();
@@ -119,6 +118,10 @@ const dbReady = sequelize.sync({ force: false, alter: false }).catch(() => {
     } catch (e) {
         console.error("Auto-seed error:", e);
     }
-}).catch(e => console.error("DB sync failed:", e));
+    return null;
+}).catch(e => {
+    console.error("DB sync failed:", e);
+    return e;
+});
 
 module.exports = { sequelize, User, Item, Purchase, Recharge, dbReady };
